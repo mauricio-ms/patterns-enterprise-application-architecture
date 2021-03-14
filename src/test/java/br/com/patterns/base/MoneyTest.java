@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 class MoneyTest {
 
     @Test
-    public void foemmelConundrum() {
+    void foemmelConundrum() {
         // Arrange
         long[] allocation = {3, 7};
 

@@ -5,11 +5,19 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.Currency;
 
-public record Money(long amount, Currency currency) implements Comparable<Money> {
+public class Money implements Comparable<Money> {
 
     private static final int[] CENTS = new int[]{1, 10, 100, 1000};
 
+    private final long amount;
+
+    private final Currency currency;
+
     public static Money dollars(double amount) {
+        return new Money(amount, Currency.getInstance("USD"));
+    }
+
+    public static Money dollars(BigDecimal amount) {
         return new Money(amount, Currency.getInstance("USD"));
     }
 
@@ -27,7 +35,7 @@ public record Money(long amount, Currency currency) implements Comparable<Money>
     }
 
     public Money(BigDecimal amount, Currency currency) {
-        this(Math.round(amount.longValue() * centFactor(currency)), currency);
+        this(Math.round(amount.doubleValue() * centFactor(currency)), currency);
     }
 
     private static int centFactor(Currency currency) {
@@ -89,12 +97,15 @@ public record Money(long amount, Currency currency) implements Comparable<Money>
     }
 
     public Money multiply(BigDecimal amount, RoundingMode roundingMode) {
-        return new Money(BigDecimal.valueOf(amount(), currency.getDefaultFractionDigits())
-            .multiply(amount, new MathContext(2, roundingMode)), currency);
+        return new Money(amount().multiply(amount, new MathContext(2, roundingMode)), currency);
     }
 
     public boolean greaterThan(Money other) {
         return compareTo(other) > 0;
+    }
+
+    public BigDecimal amount() {
+        return BigDecimal.valueOf(amount, currency.getDefaultFractionDigits());
     }
 
     @Override
@@ -110,7 +121,7 @@ public record Money(long amount, Currency currency) implements Comparable<Money>
     }
 
     private void assertSameCurrencyAs(Money arg) {
-        if (currency.equals(arg.currency)) {
+        if (!currency.equals(arg.currency)) {
             throw new IllegalArgumentException("money math mismatch");
         }
     }
@@ -126,5 +137,13 @@ public record Money(long amount, Currency currency) implements Comparable<Money>
     @Override
     public int hashCode() {
         return (int) (amount ^ (amount >>> 32));
+    }
+
+    @Override
+    public String toString() {
+        return "Money{" +
+                "amount=" + amount +
+                ", currency=" + currency +
+                '}';
     }
 }
